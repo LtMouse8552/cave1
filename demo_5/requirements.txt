@@ -1,0 +1,14 @@
+# Deep Agents 核心框架（内含 langchain / langgraph）
+deepagents>=0.7.24
+# 通过 OpenAI 兼容协议调用阿里百炼
+langchain-openai>=1.7.0
+# 把 MCP 服务器的工具转换成 LangChain 工具
+langchain-mcp-adapters>=0.3.2
+# 编写本地 MCP 服务器（FastMCP）
+mcp>=1.30.0
+# 对话历史持久化：SQLite 检查点（自动安装 aiosqlite）
+langgraph-checkpoint-sqlite>=3.0.0
+# 读取 .env
+python-dotenv>=1.0.0
+# 网页界面
+streamlit>=1.40.0

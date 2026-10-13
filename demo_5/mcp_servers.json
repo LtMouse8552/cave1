@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "course-info": {
+      "description": "本地 Python MCP 服务器（mcp_server.py），无需额外安装，默认开启",
+      "enabled": true,
+      "transport": "stdio",
+      "command": "python",
+      "args": ["mcp_server.py"]
+    },
+    "fetch": {
+      "description": "官方网页抓取服务器，需要 uv（uvx 命令），开启后 Agent 可读取网页",
+      "enabled": false,
+      "transport": "stdio",
+      "command": "uvx",
+      "args": ["mcp-server-fetch"]
+    },
+    "filesystem": {
+      "description": "官方文件系统服务器，需要 Node.js（npx 命令）",
+      "enabled": false,
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./workspace"]
+    },
+    "remote-example": {
+      "description": "远程 HTTP MCP 服务器示例，把 url 换成真实地址后开启",
+      "enabled": false,
+      "transport": "streamable_http",
+      "url": "https://example.com/mcp",
+      "headers": {"Authorization": "Bearer YOUR_TOKEN"}
+    }
+  }
+}
