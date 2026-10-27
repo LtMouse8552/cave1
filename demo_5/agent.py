@@ -45,18 +45,25 @@ LITE_MODE = os.getenv("LITE_MODE", "false").lower() == "true"
 # ------------------------------------------------------------------
 # 1. 模型：阿里百炼 OpenAI 兼容接口
 # ------------------------------------------------------------------
-def build_model(model_name: str | None = None) -> ChatOpenAI:
-    """创建一个指向阿里百炼的聊天模型。
+def build_model(model_name: str | None = None, provider: str = "cloud") -> ChatOpenAI:
+    """创建一个聊天模型。
 
-    阿里百炼提供 OpenAI 兼容的 /chat/completions 接口，
-    所以直接用 langchain-openai 的 ChatOpenAI，改 base_url 即可。
+    provider="cloud"：阿里百炼 OpenAI 兼容接口（langchain-openai 的 ChatOpenAI）。
+    provider="local"：本机 Ollama 的 OpenAI 兼容接口 http://localhost:11434/v1，
+    不需要真实 Key（百炼 Key 缺失时用占位值，Ollama 不校验）。
     """
-    api_key = os.getenv("DASHSCOPE_API_KEY")
-    base_url = os.getenv("LLM_BASE_URL")
-    if not api_key or not base_url:
-        raise RuntimeError("缺少 DASHSCOPE_API_KEY 或 LLM_BASE_URL，请先复制 .env.example 为 .env 并填写。")
+    if provider == "local":
+        api_key = os.getenv("DASHSCOPE_API_KEY") or "ollama-local"
+        base_url = "http://localhost:11434/v1"
+        model = model_name or "qwen3.5:0.8B"
+    else:
+        api_key = os.getenv("DASHSCOPE_API_KEY")
+        base_url = os.getenv("LLM_BASE_URL")
+        model = model_name or os.getenv("LLM_MODEL") or "qwen3.7-plus"
+        if not api_key or not base_url:
+            raise RuntimeError("缺少 DASHSCOPE_API_KEY 或 LLM_BASE_URL，请先复制 .env.example 为 .env 并填写。")
     return ChatOpenAI(
-        model=model_name or os.getenv("LLM_MODEL") or "qwen3.7-plus",
+        model=model,
         api_key=api_key,
         base_url=base_url,
         temperature=float(os.getenv("LLM_TEMPERATURE") or 0.3),
@@ -113,11 +120,11 @@ async def load_mcp_tools() -> tuple[list, list[str]]:
 # 3. 子代理：主 Agent 通过内置的 task 工具把子任务委派给它们
 #    子代理有独立的上下文窗口，只把最终结果返回给主 Agent
 # ------------------------------------------------------------------
-def build_subagents(mcp_tools: list) -> list[dict]:
-    if LITE_MODE:
+def build_subagents(mcp_tools: list, provider: str = "cloud") -> list[dict]:
+    if LITE_MODE or provider == "local":
         # 本地小模型无法稳定驱动子代理委派，直接关闭
         return []
-    sub_model = build_model(os.getenv("SUBAGENT_MODEL") or None)
+    sub_model = build_model(os.getenv("SUBAGENT_MODEL") or None, provider)
     return [
         {
             "name": "researcher",
@@ -183,8 +190,9 @@ async def build_checkpointer() -> AsyncSqliteSaver:
     return AsyncSqliteSaver(conn)
 
 
-async def build_agent():
-    """创建 Deep Agent，返回 (agent, 信息字典)。"""
+async def build_agent(provider: str = "cloud"):
+    """创建 Deep Agent，返回 (agent, 信息字典)。provider: "cloud" 或 "local"。"""
+    lite = LITE_MODE or provider == "local"
     mcp_tools, warnings = await load_mcp_tools()
 
     # virtual_mode=True：路径被限制在 root_dir 内，无法用 .. 或绝对路径逃逸
@@ -198,10 +206,10 @@ async def build_agent():
     ]
 
     agent = create_deep_agent(
-        model=build_model(),
+        model=build_model(provider=provider),
         tools=[*CUSTOM_TOOLS, *mcp_tools],
-        system_prompt=LITE_SYSTEM_PROMPT if LITE_MODE else SYSTEM_PROMPT,
-        subagents=build_subagents(mcp_tools),
+        system_prompt=LITE_SYSTEM_PROMPT if lite else SYSTEM_PROMPT,
+        subagents=build_subagents(mcp_tools, provider),
         skills=["/skills/"],     # 相对 backend 根目录，即 demo_5/skills/
         memory=["/AGENTS.md"],   # 即 demo_5/AGENTS.md
         backend=backend,
@@ -213,11 +221,14 @@ async def build_agent():
     )
 
     info = {
-        "model": os.getenv("LLM_MODEL") or "qwen3.7-plus",
+        "provider": provider,
+        "model": ("qwen3.5:0.8B" if provider == "local"
+                  else os.getenv("LLM_MODEL") or "qwen3.7-plus"),
+        "lite_mode": lite,
         "custom_tools": [t.__name__ for t in CUSTOM_TOOLS],
         "mcp_tools": [t.name for t in mcp_tools],
         "skills": sorted(p.name for p in (BASE_DIR / "skills").iterdir() if (p / "SKILL.md").exists()),
-        "subagents": ["general-purpose"] if LITE_MODE
+        "subagents": ["general-purpose"] if lite
                      else ["researcher", "critic", "general-purpose"],
         "warnings": warnings,
     }
