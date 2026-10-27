@@ -16,10 +16,10 @@
 | 增量点 | 课堂 demo_5 | 本项目 |
 | --- | --- | --- |
 | 场景 | 课程助教问答 | 开源许可证合规评估（新场景） |
-| MCP 服务器 | `course-info`：3 个课程信息查询工具 | `license-info`：4 个合规工具（`mcp_server.py` 重写，314 行） |
-| 工具 1 | list_course_demos | `get_license_info`：内置 16 种常见许可证（SPDX 标识符）的合规要点知识库 |
-| 工具 2 | get_course_demo | `check_compatibility`：整组许可证的 Copyleft 传染风险检查 |
-| 工具 3 | text_stats | `scan_project_licenses`：扫描项目目录中的 LICENSE/COPYING/NOTICE 文件并用正则特征识别许可证类型 |
+| MCP 服务器 | `course-info`：3 个课程信息查询工具 | `license-info`：3 个合规工具（`mcp_server.py`，知识库外置 `licenses.json`） |
+| 工具 1 | list_course_demos | `get_license_info`：许可证合规要点知识库（外置 JSON，16 种常见 SPDX 标识符，支持名称归一化） |
+| 工具 2 | get_course_demo | `check_compatibility`：整组许可证的 Copyleft 传染风险检查，含双 Copyleft 与例外条款提示 |
+| 工具 3 | text_stats | `scan_project_licenses`：扫描项目目录中的 LICENSE/COPYING/NOTICE 文件（含 `.md`/`.txt`、连字符命名），并解析 `package.json` / `pyproject.toml` 的 `license` 字段；深度与文件数可配置 |
 | Skills | report-writer / code-explainer | `compliance-report`（合规报告 + 模板）/ `license-qa`（许可证讲解） |
 | 合规设计 | 无 | 系统提示词强制要求：不替用户做法律结论、识别不出的许可证标“待核实”、报告末尾注明以原文为准 |
 
@@ -71,6 +71,31 @@ demo_5/
 ---
 
 ## 四、启动指南
+
+### 0. 本地运行（Ollama，零 API 费用，可选）
+
+没有百炼 Key 时，可用本机 Ollama 跑：
+
+```cmd
+ollama pull qwen3.5:0.8B
+```
+
+然后在 `.env` 中启用「方案二」（见 `.env.example` 注释说明）：
+
+```ini
+DASHSCOPE_API_KEY=ollama-local
+LLM_BASE_URL=http://localhost:11434/v1
+LLM_MODEL=qwen3.5:0.8B
+LITE_MODE=true
+LLM_TIMEOUT=300
+```
+
+说明：
+
+- `LITE_MODE=true` 会**关闭子代理**并改用精简系统提示词，适配 0.8B 级小模型的能力上限；报告以要点式为主。
+- `DASHSCOPE_API_KEY` 只是占位（代码校验非空），本地不需要真实 Key。
+- 小模型工具调用不稳定属预期现象；建议升级 `ollama pull qwen2.5:14b` 并把 `LLM_MODEL` 改为对应名称（LITE_MODE 可保持 true，或改 false 启用子代理），无需改代码。
+- 切回云端：恢复「方案一」的配置并设置 `LITE_MODE=false` 即可。
 
 ### 1. 准备环境
 

@@ -9,6 +9,7 @@ description: 撰写一份开源许可证合规评估报告并保存为 Markdown 
 用户希望对一个项目或一批开源依赖做许可证风险评估，并得到一份可存档的 Markdown 报告时。
 
 ## 执行步骤
+> **本地小模型模式（LITE_MODE）**：若系统提示词为精简版（未提供 write_todos 计划与 task 子代理），报告改为“要点式 Markdown（≤400 字）”，跳过审稿步骤自查后直接定稿，不强制 800-1500 字。
 1. 用 `write_todos` 列出计划：扫描许可证、查条款、写初稿、审稿、定稿。
 2. 用 `get_current_time` 获取今天的日期，写进报告抬头。
 3. 收集事实（报告中的事实只能来自这些来源）：
@@ -18,9 +19,8 @@ description: 撰写一份开源许可证合规评估报告并保存为 Markdown 
    - 无法识别的许可证（unknown）如实标注“待人工核实”，不要猜测。
 4. 用 `read_file` 读取模板 `/skills/compliance-report/template.md`，严格按模板结构写作。
 5. 用 `write_file` 把初稿保存到 `/workspace/compliance-report.md`。
-6. 用 `task` 把初稿全文交给 `critic` 子代理审稿，根据意见用 `edit_file` 修改。
-7. 可调用 MCP 工具 `text_stats` 检查篇幅，正文建议 800 到 1500 字。
-8. 最后告诉用户文件路径，用 3 句话概括主要风险和建议。
+6. 用 `task` 把初稿全文交给 `critic` 子代理审稿，根据意见用 `edit_file` 修改；LITE_MODE 下跳过此步，自查后定稿。
+7. 最后告诉用户文件路径，用 3 句话概括主要风险和建议。
 
 ## 写作规范
 - 结论先行：报告第一段就给出整体风险等级（低 / 中 / 高）和一句话理由。

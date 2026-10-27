@@ -1,0 +1,130 @@
+{
+  "MIT": {
+    "name": "MIT License",
+    "copyleft": "无",
+    "commercial": "允许",
+    "patent_grant": "未明确授予",
+    "modify_must_open": "否",
+    "summary": "最宽松的常用许可证之一，保留版权声明即可自由使用、修改、再分发。"
+  },
+  "ISC": {
+    "name": "ISC License",
+    "copyleft": "无",
+    "commercial": "允许",
+    "patent_grant": "未明确授予",
+    "modify_must_open": "否",
+    "summary": "与 MIT 基本等价的宽松许可证，措辞更简洁，npm 生态常见。"
+  },
+  "0BSD": {
+    "name": "BSD Zero Clause License",
+    "copyleft": "无",
+    "commercial": "允许",
+    "patent_grant": "未明确授予",
+    "modify_must_open": "否",
+    "summary": "近似公有领域的极简许可证，连保留声明的要求都几乎省略。"
+  },
+  "BSD-2-Clause": {
+    "name": "BSD 2-Clause License",
+    "copyleft": "无",
+    "commercial": "允许",
+    "patent_grant": "未明确授予",
+    "modify_must_open": "否",
+    "summary": "宽松许可证，需保留版权与免责声明，不得用原作者名义做宣传。"
+  },
+  "BSD-3-Clause": {
+    "name": "BSD 3-Clause License",
+    "copyleft": "无",
+    "commercial": "允许",
+    "patent_grant": "未明确授予",
+    "modify_must_open": "否",
+    "summary": "在 BSD-2 基础上追加一条：未经许可不得用贡献者名义推广衍生产品。"
+  },
+  "Apache-2.0": {
+    "name": "Apache License 2.0",
+    "copyleft": "无",
+    "commercial": "允许",
+    "patent_grant": "明确授予",
+    "modify_must_open": "否",
+    "summary": "宽松许可证，附专利授权与商标限制；修改文件需显著标注。"
+  },
+  "MPL-2.0": {
+    "name": "Mozilla Public License 2.0",
+    "copyleft": "弱（文件级）",
+    "commercial": "允许",
+    "patent_grant": "明确授予",
+    "modify_must_open": "仅修改过的源文件需开源",
+    "summary": "文件级弱 Copyleft：改动的文件须以 MPL 开源，可与专有代码混用。"
+  },
+  "LGPL-3.0": {
+    "name": "GNU LGPL v3",
+    "copyleft": "弱（库级）",
+    "commercial": "允许",
+    "patent_grant": "随 GPL-3.0 授予",
+    "modify_must_open": "修改库本身需开源",
+    "summary": "弱 Copyleft：允许专有软件以动态链接方式调用，但库自身改动须开源。"
+  },
+  "GPL-3.0": {
+    "name": "GNU GPL v3",
+    "copyleft": "强",
+    "commercial": "允许（但衍生品必须开源）",
+    "patent_grant": "明确授予",
+    "modify_must_open": "是",
+    "summary": "强 Copyleft：分发基于 GPL 代码的软件时，整体必须以 GPL 开源。"
+  },
+  "AGPL-3.0": {
+    "name": "GNU AGPL v3",
+    "copyleft": "最强",
+    "commercial": "允许（但含网络服务也必须开源）",
+    "patent_grant": "明确授予",
+    "modify_must_open": "是",
+    "summary": "GPL 的网络服务版本：即使只通过网络提供访问，也要提供源码。商业产品应谨慎引入。"
+  },
+  "CC-BY-4.0": {
+    "name": "CC BY 4.0",
+    "copyleft": "无",
+    "commercial": "允许",
+    "patent_grant": "不适用",
+    "modify_must_open": "否",
+    "summary": "知识共享署名协议，适合文档/数据/图片，一般不推荐用于源代码。"
+  },
+  "CC-BY-3.0": {
+    "name": "CC BY 3.0",
+    "copyleft": "无",
+    "commercial": "允许",
+    "patent_grant": "不适用",
+    "modify_must_open": "否",
+    "summary": "CC BY 4.0 的旧版，同样适合非代码资源，署名即可商用。"
+  },
+  "CC0-1.0": {
+    "name": "CC0 1.0",
+    "copyleft": "无",
+    "commercial": "允许",
+    "patent_grant": "含尽力专利弃权",
+    "modify_must_open": "否",
+    "summary": "近似公有领域，作者放弃全部版权，任意使用。"
+  },
+  "Unlicense": {
+    "name": "The Unlicense",
+    "copyleft": "无",
+    "commercial": "允许",
+    "patent_grant": "未明确授予",
+    "modify_must_open": "否",
+    "summary": "把代码献入公有领域的极简许可证。"
+  },
+  "BlueOak-1.0.0": {
+    "name": "Blue Oak Model License 1.0.0",
+    "copyleft": "无",
+    "commercial": "允许",
+    "patent_grant": "明确授予",
+    "modify_must_open": "否",
+    "summary": "为 npm 生态重写的现代宽松许可证，意图与 MIT 相近、条款更清晰。"
+  },
+  "WTFPL": {
+    "name": "Do What The F*ck You Want To Public License",
+    "copyleft": "无",
+    "commercial": "允许",
+    "patent_grant": "未明确授予",
+    "modify_must_open": "否",
+    "summary": "近似公有领域的玩笑许可证，几乎没有法律约束条款，正式项目慎用。"
+  }
+}

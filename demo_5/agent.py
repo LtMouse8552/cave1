@@ -38,6 +38,9 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"  # 对话持久化数据（已被 .gitignore 忽略）
 load_dotenv(BASE_DIR / ".env")
 
+# 小模型模式：关闭子代理、使用精简提示词，适配 Ollama 上的本地小模型
+LITE_MODE = os.getenv("LITE_MODE", "false").lower() == "true"
+
 
 # ------------------------------------------------------------------
 # 1. 模型：阿里百炼 OpenAI 兼容接口
@@ -57,7 +60,7 @@ def build_model(model_name: str | None = None) -> ChatOpenAI:
         api_key=api_key,
         base_url=base_url,
         temperature=float(os.getenv("LLM_TEMPERATURE") or 0.3),
-        timeout=120,
+        timeout=int(os.getenv("LLM_TIMEOUT") or 120),
         max_retries=2,
     )
 
@@ -111,6 +114,9 @@ async def load_mcp_tools() -> tuple[list, list[str]]:
 #    子代理有独立的上下文窗口，只把最终结果返回给主 Agent
 # ------------------------------------------------------------------
 def build_subagents(mcp_tools: list) -> list[dict]:
+    if LITE_MODE:
+        # 本地小模型无法稳定驱动子代理委派，直接关闭
+        return []
     sub_model = build_model(os.getenv("SUBAGENT_MODEL") or None)
     return [
         {
@@ -157,6 +163,9 @@ SYSTEM_PROMPT = """你是「开源合规助手」，帮助开发者在引入第�
 6. 用中文回答，结论先行。合规结论必须注明“仅作教学参考，正式判断以许可证原文为准”，不要替用户做法律结论。
 """
 
+# 精简版提示词：LITE_MODE（本地小模型）下使用，降低对规划与委派能力的依赖
+LITE_SYSTEM_PROMPT = """你是开源合规助手。遇到合规问题，先调用 MCP 工具（get_license_info / check_compatibility / scan_project_licenses）获取事实，再用 3-5 条要点回答，结论先行。不确定时标注“待核实”。不替用户做法律结论，合规结论注明“以许可证原文为准”。用中文回答。"""
+
 
 # ------------------------------------------------------------------
 # 5. 组装 Deep Agent
@@ -191,7 +200,7 @@ async def build_agent():
     agent = create_deep_agent(
         model=build_model(),
         tools=[*CUSTOM_TOOLS, *mcp_tools],
-        system_prompt=SYSTEM_PROMPT,
+        system_prompt=LITE_SYSTEM_PROMPT if LITE_MODE else SYSTEM_PROMPT,
         subagents=build_subagents(mcp_tools),
         skills=["/skills/"],     # 相对 backend 根目录，即 demo_5/skills/
         memory=["/AGENTS.md"],   # 即 demo_5/AGENTS.md
@@ -208,7 +217,8 @@ async def build_agent():
         "custom_tools": [t.__name__ for t in CUSTOM_TOOLS],
         "mcp_tools": [t.name for t in mcp_tools],
         "skills": sorted(p.name for p in (BASE_DIR / "skills").iterdir() if (p / "SKILL.md").exists()),
-        "subagents": ["researcher", "critic", "general-purpose"],
+        "subagents": ["general-purpose"] if LITE_MODE
+                     else ["researcher", "critic", "general-purpose"],
         "warnings": warnings,
     }
     return agent, info
@@ -243,6 +253,7 @@ async def stream_events(agent, question: str, thread_id: str):
 
     config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 100}
     final, buffer, segments = "", "", []
+    seen_ids: set = set()  # 已收录的 AIMessage id，防止 updates 流重复计数
     async for namespace, mode, chunk in agent.astream(
         {"messages": [{"role": "user", "content": question}]},
         config=config,
@@ -273,8 +284,19 @@ async def stream_events(agent, question: str, thread_id: str):
                 elif isinstance(msg, ToolMessage):
                     yield {"type": "tool_result", "depth": depth, "name": msg.name, "content": msg.text}
                 elif isinstance(msg, AIMessage) and depth == 0 and msg.content:
+                    # 工具调用后主 Agent 仍会继续输出；逐条追加完整消息，
+                    # 而不是只保留最后一条，避免中间结论被覆盖丢失
+                    if getattr(msg, "id", None):
+                        if msg.id in seen_ids:
+                            continue
+                        seen_ids.add(msg.id)
+                    text = msg.text.strip()
+                    if text and text != buffer.strip() and (not segments or segments[-1] != text):
+                        segments.append(text)
                     final = msg.text
-    segments.append((final or buffer).strip())
+    tail = (final or buffer).strip()
+    if tail and (not segments or segments[-1] != tail):
+        segments.append(tail)
     yield {"type": "answer", "content": "\n\n".join(x for x in segments if x)}
 
 
