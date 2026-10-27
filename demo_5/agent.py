@@ -116,8 +116,8 @@ def build_subagents(mcp_tools: list) -> list[dict]:
         {
             "name": "researcher",
             "description": (
-                "资料调研员。需要查询课程信息、抓取网页、收集并整理事实时使用。"
-                "给它一个明确的调研问题，它会返回带来源的要点总结。"
+                "许可证调研员。需要查询许可证条款、扫描项目依赖、收集开源合规事实时使用。"
+                "给它一个明确的调研问题，它会调用工具收集事实并返回带来源的要点总结。"
             ),
             "system_prompt": (
                 "你是一名严谨的资料调研员。使用可用工具收集事实，"
@@ -130,7 +130,7 @@ def build_subagents(mcp_tools: list) -> list[dict]:
         },
         {
             "name": "critic",
-            "description": "审稿人。写完报告或代码后，用它检查错误、遗漏和可改进之处。把要审的全文放进任务描述里。",
+            "description": "审稿人。写完合规报告或分析文档后，用它检查错误、遗漏和可改进之处。把要审的全文放进任务描述里。",
             "system_prompt": (
                 "你是一名挑剔但建设性的审稿人。阅读给定的文本，"
                 "列出最多 5 条具体问题和修改建议，按严重程度排序，用中文回答。"
@@ -146,14 +146,15 @@ def build_subagents(mcp_tools: list) -> list[dict]:
 # ------------------------------------------------------------------
 # 4. 系统提示词（Memory 和 Skills 列表会被框架自动追加在后面）
 # ------------------------------------------------------------------
-SYSTEM_PROMPT = """你是「AI 开源技术实践」课程的智能助教，基于 LangChain Deep Agents 构建。
+SYSTEM_PROMPT = """你是「开源合规助手」，帮助开发者在引入第三方开源组件时评估许可证风险，基于 LangChain Deep Agents 构建。
 
 工作方式：
 1. 多步骤任务先用 write_todos 列计划，完成一步更新一步。
 2. 任务与某个 Skill（技能）匹配时，先用 read_file 读取它的 SKILL.md，再严格按其中的步骤执行。
-3. 需要较多查资料时，用 task 工具委派给 researcher 子代理，避免主对话上下文膨胀。
-4. 产出的文件一律写到 /workspace/ 目录下。
-5. 用中文回答，结论先行，简洁清晰。
+3. 查询许可证信息、检查兼容性、扫描项目许可证文件时，优先使用 MCP 工具 get_license_info / check_compatibility / scan_project_licenses。
+4. 需要较多查资料时，用 task 工具委派给 researcher 子代理，避免主对话上下文膨胀。
+5. 产出的报告一律写到 /workspace/ 目录下。
+6. 用中文回答，结论先行。合规结论必须注明“仅作教学参考，正式判断以许可证原文为准”，不要替用户做法律结论。
 """
 
 
@@ -199,7 +200,7 @@ async def build_agent():
         # 当前版本 deepagents 默认不带 write_todos，需要显式加入任务规划中间件
         middleware=[TodoListMiddleware()],
         checkpointer=await build_checkpointer(),
-        name="course-assistant",
+        name="license-compliance-assistant",
     )
 
     info = {

@@ -1,7 +1,7 @@
 {
   "mcpServers": {
-    "course-info": {
-      "description": "本地 Python MCP 服务器（mcp_server.py），无需额外安装，默认开启",
+    "license-info": {
+      "description": "本地 Python MCP 服务器（mcp_server.py），开源许可证合规查询与项目扫描，无需额外安装，默认开启",
       "enabled": true,
       "transport": "stdio",
       "command": "python",
