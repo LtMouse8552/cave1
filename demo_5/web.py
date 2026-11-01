@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import queue
 import threading
 
@@ -34,6 +35,14 @@ from agent import BASE_DIR, build_agent, stream_events
 WORKSPACE = BASE_DIR / "workspace"
 
 st.set_page_config(page_title="开源合规助手", page_icon="🛡️", layout="wide")
+
+# ------------------------------------------------------------------
+# 口令门禁：服务端校验 APP_PASSWORD；未设置时直接放行（本地开发不受影响）
+# ------------------------------------------------------------------
+APP_PASSWORD = os.getenv("APP_PASSWORD", "")
+if APP_PASSWORD and st.text_input("🔒 访问口令", type="password") != APP_PASSWORD:
+    st.warning("此部署受口令保护，请输入课程群公布的访问口令。")
+    st.stop()
 
 
 # ------------------------------------------------------------------
@@ -519,11 +528,13 @@ def switch_to(thread_id: str) -> None:
 # ------------------------------------------------------------------
 # 初始化
 # ------------------------------------------------------------------
-# 模型选择器：放在侧边栏顶部，切换后按 provider 重建 Agent
+# 模型选择器：放在侧边栏顶部，切换后按 provider 重建 Agent。
+# 本地 Ollama 选项仅在 ENABLE_LOCAL=1 时出现（云容器无 Ollama，默认隐藏）
 PROVIDERS = {
     "云端 · qwen3.7-plus（阿里百炼）": "cloud",
-    "本地 · Ollama qwen3.5:0.8B": "local",
 }
+if os.getenv("ENABLE_LOCAL") == "1":
+    PROVIDERS["本地 · Ollama qwen3.5:0.8B"] = "local"
 with st.sidebar:
     provider = st.selectbox(
         "⚙️ 模型",
