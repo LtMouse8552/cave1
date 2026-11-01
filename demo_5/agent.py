@@ -54,8 +54,9 @@ def build_model(model_name: str | None = None, provider: str = "cloud") -> ChatO
     """
     if provider == "local":
         api_key = os.getenv("DASHSCOPE_API_KEY") or "ollama-local"
-        base_url = "http://localhost:11434/v1"
-        model = model_name or "qwen3.5:0.8B"
+        # 默认连本机 Ollama；云端部署可通过 LOCAL_LLM_BASE_URL 指向内网隧道地址
+        base_url = os.getenv("LOCAL_LLM_BASE_URL") or "http://localhost:11434/v1"
+        model = model_name or os.getenv("LOCAL_LLM_MODEL") or "qwen3.5:0.8B"
     else:
         api_key = os.getenv("DASHSCOPE_API_KEY")
         base_url = os.getenv("LLM_BASE_URL")

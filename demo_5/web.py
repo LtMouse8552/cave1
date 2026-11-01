@@ -540,7 +540,8 @@ with st.sidebar:
         "⚙️ 模型",
         list(PROVIDERS),
         index=0,
-        help="本地模型需要先启动 Ollama（ollama serve）并拉取 qwen3.5:0.8B",
+        help="云端部署用本地模型时：先在本机跑 cloudflared 隧道，再把 Secrets 里的"
+             " LOCAL_LLM_BASE_URL 指向隧道地址；本机使用则先启动 Ollama（ollama serve）",
     )
 st.session_state.provider = PROVIDERS[provider]
 
